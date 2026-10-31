@@ -5489,13 +5489,13 @@ async function initCloud(){
   try{ const qs=await db.collection('designs').get();
     store.list=qs.docs.map(d=>({id:d.id, name:(d.data()||{}).name, updatedAt:(d.data()||{}).updatedAt||0, owner:(d.data()||{}).owner||null})).sort((a,b)=>b.updatedAt-a.updatedAt);
     const target=store.list.find(d=>d.id===store.id) || store.list[0];
-    if(START.acted){ if(store.pending) await flush(); if(!$('#start').hidden) showStart(); return; }
+    if(START.acted){ if(store.pending) await flush(); else setChip('ok','클라우드 연결됨'); if(!$('#start').hidden) showStart(); return; }
     if(target){ const snap=await db.doc('designs/'+target.id).get(); const data=snap.exists?snap.data():null; let local=null; try{ local=JSON.parse(lsGet('ls.draft.'+target.id)||'null'); }catch(e){}
       store.id=target.id; store.name=(data&&data.name)||target.name||store.name;
       if(local && (!data || local.updatedAt>(data.updatedAt||0)+1000)){ loadPayload(local.json); store.name=local.name||store.name; store.pending=true; }
       else if(data){ const j=await dbReadDesign(target.id, data); if(loadPayload(j)) setChip('ok','저장됨'); else if(local){ loadPayload(local.json); } else { store.readOnly=true; setChip('err','불러오지 못했습니다 · 새로고침해 주세요 (덮어쓰지 않도록 저장을 멈췄습니다)'); } }
       afterLoad(); lsSet('ls.current', store.id); if(store.pending) flush(); }
-    else { renderDesignSel(); }
+    else { renderDesignSel(); setChip('ok','클라우드 연결됨 · 아직 저장된 설계안 없음'); }
   }catch(e){ setChip('err','클라우드에 연결하지 못함 · 이 브라우저에 저장'); store.db=null; }
 }
 async function switchDesign(id, skipFlush){ START.acted=true; if(id===store.id) return; if(store.db && !skipFlush) await flush(); clearTimeout(saveT); store.pending=false; store.id=id; lsSet('ls.current',id); sel=[];
